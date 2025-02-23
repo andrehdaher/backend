@@ -140,51 +140,6 @@ app.get("/api/", async (req, res) => {
   }
 });
 
-=======
-// ✅ تسجيل مستخدم جديد (Signup)
-app.post("/api/signup", async (req, res) => {
-  const { email, password, role } = req.body;
-  if (!email || !password || !role) {
-    return res.status(400).json({ message: "Enter all fields" });
-  }
-
-  const isUser = await User.findOne({ email });
-  if (isUser) {
-    return res.status(400).json({ message: "User already exists" });
-  }
-
-  // لا حاجة لتشفير كلمة المرور، فقط خزنها كما هي
-  await User.create({ email, password, role });
-
-  res.status(200).json({ message: "Signup successful" });
-});
-
-// ✅ تسجيل الدخول (Login)
-app.post("/api/login", async (req, res) => {
-  const { email, password } = req.body;
-  
-  try {
-    const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(400).json({ message: "User not found" });
-    }
-
-    // مقارنة كلمة المرور المدخلة بكلمة المرور المخزنة كما هي
-    if (password !== user.password) {
-      return res.status(400).json({ message: "Invalid password" });
-    }
-
-    const token = jwt.sign({ id: user._id, role: user.role }, "secretKey", {
-      expiresIn: "10m",
-    });
-    
-    res.status(200).json({ message: "Login successful", token, role: user.role });
-  } catch (err) {
-    console.log(err);
-    res.status(500).json({ message: "Error logging in" });
-  }
-});
-
 // ✅ جلب بيانات مستخدم بواسطة البريد الإلكتروني
 app.get("/api/user/:email", async (req, res) => {
   const { email } = req.params;
