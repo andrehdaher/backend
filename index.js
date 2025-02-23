@@ -10,6 +10,8 @@ const addUser = require("./models/add-userSchema");
 const Product = require("./models/productSchema "); 
 const Passport  = require("./models/passportSchema"); 
 const Sale = require("./models/Saleschema"); 
+require("dotenv").config();
+
 var methodOverride = require("method-override");
 
 const app = express();
@@ -20,17 +22,29 @@ app.use("/uploads", express.static("uploads")); // جعل الملفات قاب�
 app.use(express.static(path.join(__dirname, '../front/hifi/build')));
 
 
-<<<<<<< HEAD
+mongoose.connect(process.env.MONGO_URI)
+.then(() => console.log("✅ Connected to MongoDB"))
+.catch((err) => console.log("❌ MongoDB connection error:", err));
 
-=======
->>>>>>> 07b93d7 (Initial commit)
-mongoose
-  .connect(
-    "mongodb+srv://andrehdaher2003:UdVBUjufCUd79dqc@travelstory.svfos.mongodb.net/loginUser?retryWrites=true&w=majority&appName=travelstory"
-  )
-  .then(() => console.log("✅ Connected to MongoDB"))
-  .catch((err) => console.log("❌ MongoDB connection error:", err));
+const verifyRole = (role) => {
+  return (req, res, next) => {
+    const token = req.headers.authorization;
+    if (!token) {
+      return res.status(401).json({ message: "No token provided, please login" });
+    }
 
+    try {
+      const decoded = jwt.verify(token.split(" ")[1], "secretKey"); 
+      if (decoded.role !== role) {
+        return res.status(403).json({ message: "Access denied, incorrect role" });
+      }
+      req.user = decoded;
+      next();
+    } catch (err) {
+      return res.status(401).json({ message: "Invalid token, please login again" });
+    }
+  };
+};
   
   // ✅ تسجيل مستخدم جديد (Signup)
 app.post("/api/signup", async (req, res) => {
@@ -65,7 +79,7 @@ app.post("/api/signup", async (req, res) => {
       }
   
       const token = jwt.sign({ id: user._id, role: user.role }, "secretKey", {
-        expiresIn: "100m",
+        expiresIn: "10m",
       });
   
       
@@ -85,7 +99,7 @@ app.get("/api/user/:email", async (req, res) => {
   
   
   try {
-    const user = await addUser.findOne({user: email });
+    const user = await User.findOne({user: email });
     
     if (!user) {
       console.log("❌ User not found for email:", email);
@@ -101,25 +115,6 @@ app.get("/api/user/:email", async (req, res) => {
 });
 
 
-const verifyRole = (role) => {
-  return (req, res, next) => {
-    const token = req.headers.authorization;
-    if (!token) {
-      return res.status(401).json({ message: "No token provided, please login" });
-    }
-
-    try {
-      const decoded = jwt.verify(token.split(" ")[1], "secretKey"); 
-      if (decoded.role !== role) {
-        return res.status(403).json({ message: "Access denied, incorrect role" });
-      }
-      req.user = decoded;
-      next();
-    } catch (err) {
-      return res.status(401).json({ message: "Invalid token, please login again" });
-    }
-  };
-};
 
 
 
