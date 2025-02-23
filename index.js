@@ -30,7 +30,7 @@ mongoose
   )
   .then(() => console.log("✅ Connected to MongoDB"))
   .catch((err) => console.log("❌ MongoDB connection error:", err));
-<<<<<<< HEAD
+
   
   // ✅ تسجيل مستخدم جديد (Signup)
 app.post("/api/signup", async (req, res) => {
@@ -100,8 +100,6 @@ app.get("/api/user/:email", async (req, res) => {
   }
 });
 
-=======
->>>>>>> 07b93d7 (Initial commit)
 
 const verifyRole = (role) => {
   return (req, res, next) => {
@@ -123,8 +121,6 @@ const verifyRole = (role) => {
   };
 };
 
-<<<<<<< HEAD
-
 
 
 
@@ -139,34 +135,6 @@ app.get("/api/", async (req, res) => {
     res.status(500).json({ message: "Error fetching users" });
   }
 });
-
-// ✅ جلب بيانات مستخدم بواسطة البريد الإلكتروني
-app.get("/api/user/:email", async (req, res) => {
-  const { email } = req.params;
-
-  
-
-  try {
-    const user = await addUser.findOne({user: email });
-
-    if (!user) {
-      console.log("❌ User not found for email:", email);
-      return res.status(404).json({ message: "User not found" });
-    }
-
-  
-    res.status(200).json(user);
-  } catch (err) {
-    console.error("❌ Error fetching user data:", err);
-    res.status(500).json({ message: "Error fetching user data" });
-  }
-});
-
-
-
-
-
->>>>>>> 07b93d7 (Initial commit)
 // ✅ إضافة مستخدم جديد
 app.post("/api/add-user", async (req, res) => {
   try {
@@ -192,19 +160,7 @@ app.delete("/api/delete/:id", async (req, res) => {
   }
 });
 
-<<<<<<< HEAD
-=======
-// ✅ جلب جميع المستخدمين (للمشرف فقط)
-app.get("/api/", async (req, res) => {
-  try {
-    const users = await addUser.find();
-    res.status(200).json(users);
-  } catch (err) {
-    console.log(err);
-    res.status(500).json({ message: "Error fetching users" });
-  }
-});
->>>>>>> 07b93d7 (Initial commit)
+
 
 
 // ✅ تحديث بيانات المستخدم
