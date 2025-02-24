@@ -19,8 +19,6 @@ app.use(cors());
 app.use(express.json());
 app.use(methodOverride("_method"));
 app.use("/uploads", express.static("uploads")); // جعل الملفات قابلة للوصول
-app.use(express.static(path.join(__dirname, "../front/hifi/build")));
-
 
 mongoose
 .connect(process.env.MONGO_URI)
@@ -540,15 +538,6 @@ app.put("/api/passports/:id", upload.array("idImages", 10), async (req, res) => 
   } catch (error) {
     console.error("❌ حدث خطأ أثناء التعديل:", error);
     res.status(500).json({ message: "حدث خطأ في التعديل، يرجى المحاولة لاحقًا." });
-  }
-});
-
-app.get("*", (req, res) => {
-  const indexPath = path.join(__dirname, "../front/hifi/build", "index.html");
-  if (fs.existsSync(indexPath)) {
-    res.sendFile(indexPath);
-  } else {
-    res.status(404).send("index.html not found.");
   }
 });
 
