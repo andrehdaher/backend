@@ -550,6 +550,6 @@ app.put("/api/passports/:id", upload.array("idImages", 10), async (req, res) => 
 
 
 const port = process.env.PORT || 3000; // استخدام متغير البيئة
-app.listen(port, () => {
+app.listen(port, "0.0.0.0",() => {
   console.log(`Server running on port ${port}`);
 });
