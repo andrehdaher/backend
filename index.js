@@ -119,7 +119,6 @@ app.get("/api/user/:email", async (req, res) => {
 
 
 
-app.use(verifyRole);
 
 
 // ✅ جلب جميع المستخدمين (للمشرف فقط)
@@ -546,6 +545,6 @@ app.put("/api/passports/:id", upload.array("idImages", 10), async (req, res) => 
 
 
 const port = process.env.PORT || 3000; // استخدام متغير البيئة
-app.listen(port, "0.0.0.0",() => {
+app.listen(port, () => {
   console.log(`Server running on port ${port}`);
 });
