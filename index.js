@@ -18,7 +18,7 @@ const app = express();
 app.use(cors({
   origin: 'https://andreh-daher.netlify.app',  // تحديد الـ origin الذي تريد السماح له
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],  // السماح بالطرق الأخرى
-  allowedHeaders: ['Content-Type', 'Authorization'],  // السماح بالهيدر المناسب
+
 }));
 app.options('*', cors()); // يسمح لجميع الطلبات OPTIONS
 app.use(express.json());
