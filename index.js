@@ -15,11 +15,7 @@ require("dotenv").config();
 var methodOverride = require("method-override");
 
 const app = express();
-app.use(cors({
-  origin: 'https://andreh-daher.netlify.app',  // تحديد الـ origin الذي تريد السماح له
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],  // السماح بالطرق الأخرى
-
-}));
+app.use(cors());
 app.options('*', cors()); // يسمح لجميع الطلبات OPTIONS
 app.use(express.json());
 app.use(methodOverride("_method"));
