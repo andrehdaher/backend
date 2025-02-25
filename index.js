@@ -15,7 +15,12 @@ require("dotenv").config();
 var methodOverride = require("method-override");
 
 const app = express();
-app.use(cors());
+app.use(cors({
+  origin: 'https://andreh-daher.netlify.app',  // تحديد الـ origin الذي تريد السماح له
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],  // السماح بالطرق الأخرى
+  allowedHeaders: ['Content-Type', 'Authorization'],  // السماح بالهيدر المناسب
+}));
+app.options('*', cors()); // يسمح لجميع الطلبات OPTIONS
 app.use(express.json());
 app.use(methodOverride("_method"));
 app.use("/uploads", express.static("uploads")); // جعل الملفات قابلة للوصول
@@ -44,6 +49,8 @@ const verifyRole = (role) => {
     }
   };
 };
+
+
   
   // ✅ تسجيل مستخدم جديد (Signup)
 app.post("/api/signup", async (req, res) => {
@@ -116,6 +123,7 @@ app.get("/api/user/:email", async (req, res) => {
 
 
 
+app.use(verifyRole);
 
 
 // ✅ جلب جميع المستخدمين (للمشرف فقط)
@@ -229,7 +237,6 @@ app.get("/api/products", async (req, res) => {
 });
 
 app.put("/api/products/:id", async (req, res) => {
-  console.log("aaaaaaaaaaaaaaaaaaaaaaa")
   try {
     console.log(req.body)
     const { quantity, totalSales } = req.body;
