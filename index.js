@@ -233,29 +233,27 @@ app.get("/api/products", async (req, res) => {
 
 app.put("/api/products/:id", async (req, res) => {
   try {
-    console.log("📩 البيانات المستلمة:", req.body);
+    console.log("📩 استلام الطلب:", req.body);
 
     const { quantity, totalSales } = req.body;
-
-    // ✅ التحقق من أن البيانات موجودة وصحيحة
     if (quantity === undefined || totalSales === undefined) {
       return res.status(400).json({ error: "❌ البيانات غير مكتملة" });
     }
 
-    // ✅ تحويل القيم إلى أرقام (في حال تم إرسالها كنصوص)
     const updatedProduct = await Product.findByIdAndUpdate(
       req.params.id,
       { 
         quantity: parseInt(quantity, 10), 
         totalSales: parseInt(totalSales, 10) 
       },
-      { new: true } // إرجاع المنتج بعد التحديث
+      { new: true }
     );
 
     if (!updatedProduct) {
       return res.status(404).json({ error: "❌ المنتج غير موجود" });
     }
 
+    console.log("✅ تحديث ناجح:", updatedProduct);
     res.json({ message: "✅ تم التحديث بنجاح", product: updatedProduct });
   } catch (error) {
     console.error("❌ خطأ أثناء التحديث:", error);
