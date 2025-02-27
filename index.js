@@ -117,10 +117,6 @@ app.get("/api/user/:email", async (req, res) => {
 });
 
 
-
-
-
-
 // ✅ جلب جميع المستخدمين (للمشرف فقط)
 
 app.get("/api/", async (req, res) => {
@@ -156,8 +152,6 @@ app.delete("/api/delete/:id", async (req, res) => {
     res.status(500).json({ message: "Error deleting user", error });
   }
 });
-
-
 
 
 // ✅ تحديث بيانات المستخدم
@@ -221,6 +215,9 @@ app.post("/api/products", async (req, res) => {
 });
 
 
+
+
+
 // ✅ 📌 جلب المنتجات
 app.get("/api/products", async (req, res) => {
   try {
@@ -231,23 +228,27 @@ app.get("/api/products", async (req, res) => {
   }
 });
 
-// 🛠️ تحديث المنتج
-app.put("/api/:id", async (req, res) => {
+
+//=======================================================================================
+
+
+// PUT /products/:id
+app.put('/api/products/:id', async (req, res) => {
+  console.log("aaaaaaaaaa")
   try {
-    const { id } = req.params; // الحصول على ID المنتج من الرابط
-    const updatedData = req.body; // البيانات الجديدة التي أرسلها الـ Frontend
-
-    // البحث عن المنتج وتحديثه
-    const updatedProduct = await Product.findByIdAndUpdate(id, updatedData, { new: true });
-
-    if (!updatedProduct) {
-      return res.status(404).json({ message: "❌ المنتج غير موجود!" });
-    }
-
-    res.status(200).json({ message: "✅ تم تحديث المنتج بنجاح!", product: updatedProduct });
+    const { name, type, wholesalePrice, salePrice, quantity, totalSales } = req.body;
+    const product = await Product.findByIdAndUpdate(req.params.id, {
+      name,
+      type,
+      wholesalePrice,
+      salePrice,
+      quantity,
+      totalSales,
+    }, { new: true });
+    res.json(product);
   } catch (error) {
-    console.error("❌ خطأ أثناء تحديث المنتج:", error);
-    res.status(500).json({ message: "❌ فشل تحديث المنتج!", error });
+    console.error(error);
+    res.status(500).json({ message: 'فشل في تحديث المنتج' });
   }
 });
 
