@@ -218,15 +218,118 @@ app.post("/api/products", async (req, res) => {
 
 
 
-// ✅ 📌 جلب المنتجات
-app.get("/api/products", async (req, res) => {
+// 1. جلب جميع المنتجات
+app.get('/inventory', async (req, res) => {
   try {
-    const products = await Product.find(); // جلب جميع المنتجات
+    const products = await Product.find();
     res.json(products);
   } catch (error) {
-    res.status(500).json({ error: "❌ فشل جلب المنتجات" });
+    console.error("خطأ في جلب المنتجات:", error);
+    res.status(500).send("حدث خطأ أثناء جلب المنتجات");
   }
 });
+
+
+// 2. إضافة منتج جديد
+app.post('/inventory', async (req, res) => {
+  const { name, type, wholesalePrice, retailPrice, quantity } = req.body;
+
+  if (!name || !type || !wholesalePrice || !retailPrice || quantity === undefined) {
+    return res.status(400).send("الرجاء إدخال كافة البيانات");
+  }
+
+  try {
+    const newProduct = new Product({ name, type, wholesalePrice, retailPrice, quantity });
+    await newProduct.save();
+    res.status(201).send('تم إضافة المنتج بنجاح');
+  } catch (error) {
+    console.error("خطأ في إضافة المنتج:", error);
+    res.status(500).send("حدث خطأ أثناء إضافة المنتج");
+  }
+});
+
+
+
+// 3. تعديل سعر منتج
+app.put('/inventory/:id', async (req, res) => {
+  const { id } = req.params;
+  const { retailPrice } = req.body;
+
+  if (!retailPrice || isNaN(retailPrice)) {
+    return res.status(400).send("الرجاء إدخال سعر صحيح");
+  }
+
+  try {
+    const product = await Product.findById(id);
+    if (!product) {
+      return res.status(404).send("المنتج غير موجود");
+    }
+    
+    product.retailPrice = retailPrice;
+    await product.save();
+    res.status(200).send('تم تعديل السعر بنجاح');
+  } catch (error) {
+    console.error("خطأ في تعديل المنتج:", error);
+    res.status(500).send("حدث خطأ أثناء تعديل المنتج");
+  }
+});
+
+
+
+// 4. حذف منتج
+app.delete('/inventory/:id', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const product = await Product.findByIdAndDelete(id);
+    if (!product) {
+      return res.status(404).send("المنتج غير موجود");
+    }
+
+    res.status(200).send("تم حذف المنتج بنجاح");
+  } catch (error) {
+    console.error("خطأ في حذف المنتج:", error);
+    res.status(500).send("حدث خطأ أثناء حذف المنتج");
+  }
+});
+
+
+
+
+
+// 5. بيع منتج مع التفاصيل المضافة
+app.post('/inventory/:id/sell', async (req, res) => {
+  const { id } = req.params;
+  const { retailPrice, buyerName, paymentMethod } = req.body;
+
+  if (!retailPrice || !buyerName || !paymentMethod) {
+    return res.status(400).send('الرجاء إدخال جميع البيانات');
+  }
+
+  try {
+    const product = await Product.findById(id);
+    if (!product) {
+      return res.status(404).send('المنتج غير موجود');
+    }
+
+    // تقليل الكمية عند البيع (إذا كانت الكمية موجودة)
+    if (product.quantity > 0) {
+      product.quantity -= 1;
+      await product.save();
+    } else {
+      return res.status(400).send('المنتج غير متوفر');
+    }
+
+    // يمكنك حفظ بيانات البيع في سجل خاص أو إضافتها إلى قاعدة البيانات إذا لزم الأمر
+    console.log(`تم بيع المنتج: ${product.name}, السعر: ${retailPrice}, المشتري: ${buyerName}, طريقة الدفع: ${paymentMethod}`);
+
+    res.status(200).send('تم بيع المنتج بنجاح');
+  } catch (error) {
+    console.error('خطأ في بيع المنتج:', error);
+    res.status(500).send('حدث خطأ أثناء بيع المنتج');
+  }
+});
+
 
 
 //=======================================================================================

@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
 const productSchema = new mongoose.Schema({
   name: {
@@ -13,23 +13,16 @@ const productSchema = new mongoose.Schema({
     type: Number,
     required: true,
   },
-  salePrice: {
+  retailPrice: {
     type: Number,
     required: true,
   },
   quantity: {
     type: Number,
-    required: true,
-  },
-  balance: {
-    type: Number,
-    default: 0, // لا يتم تحديد قيمة الرصيد بشكل صريح عند البداية
-  },
-  totalSales: {
-    type: Number,
-    default: 0, // إجمالي المبيعات المجمعة
+    default: 0,
   },
 });
 
-const Product = mongoose.model("Product", productSchema);
+const Product = mongoose.model('Product', productSchema);
+
 module.exports = Product;
