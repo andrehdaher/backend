@@ -178,48 +178,11 @@ app.put("/api/update/:id", async (req, res) => {
 });
 
 
-// 📌 دالة إضافة المنتج (POST)
-app.post("/api/products", async (req, res) => {
-
-  try {
-    const { name, type, wholesalePrice, salePrice, quantity } = req.body;
-
-    // التحقق من البيانات
-    if (!name || !type || !wholesalePrice || !salePrice || !quantity) {
-      return res.status(400).json({ error: "❌ جميع الحقول مطلوبة!" });
-    }
-
-    if (wholesalePrice <= 0 || salePrice <= 0 || quantity <= 0) {
-      return res.status(400).json({ error: "❌ يجب أن تكون القيم أكبر من 0!" });
-    }
-
-    // إنشاء كائن المنتج
-    const newProduct = new Product({
-      name,
-      type,
-      wholesalePrice,
-      salePrice,
-      quantity,
-      balance: salePrice * quantity, // إضافة الرصيد كقيمة محسوبة
-      totalSales: 0, // تعيين المبيعات الافتراضية إلى 0
-    });
-
-    // حفظ المنتج في قاعدة البيانات
-    await newProduct.save();
-
-    res.status(201).json({ message: "✅ تم إضافة المنتج بنجاح!", product: newProduct });
-  } catch (error) {
-    console.error("❌ خطأ في السيرفر:", error);
-    res.status(500).json({ error: "❌ حدث خطأ في الخادم!" });
-  }
-});
-
-
 
 
 
 // 1. جلب جميع المنتجات
-app.get('/inventory', async (req, res) => {
+app.get('/api/inventory', async (req, res) => {
   try {
     const products = await Product.find();
     res.json(products);
@@ -231,7 +194,7 @@ app.get('/inventory', async (req, res) => {
 
 
 // 2. إضافة منتج جديد
-app.post('/inventory', async (req, res) => {
+app.post('/api/inventory', async (req, res) => {
   const { name, type, wholesalePrice, retailPrice, quantity } = req.body;
 
   if (!name || !type || !wholesalePrice || !retailPrice || quantity === undefined) {
@@ -251,7 +214,7 @@ app.post('/inventory', async (req, res) => {
 
 
 // 3. تعديل سعر منتج
-app.put('/inventory/:id', async (req, res) => {
+app.put('/api/inventory/:id', async (req, res) => {
   const { id } = req.params;
   const { retailPrice } = req.body;
 
@@ -277,7 +240,7 @@ app.put('/inventory/:id', async (req, res) => {
 
 
 // 4. حذف منتج
-app.delete('/inventory/:id', async (req, res) => {
+app.delete('/api/inventory/:id', async (req, res) => {
   const { id } = req.params;
 
   try {
@@ -298,7 +261,7 @@ app.delete('/inventory/:id', async (req, res) => {
 
 
 // تعديل بيع المنتج ليشمل تسجيل المبيعات
-app.post('/inventory/:id/sell', async (req, res) => {
+app.post('/api/inventory/:id/sell', async (req, res) => {
   const { id } = req.params;
   const { retailPrice, buyerName, paymentMethod } = req.body;
 
@@ -340,7 +303,7 @@ app.post('/inventory/:id/sell', async (req, res) => {
 
 
 // 6. عرض جميع المبيعات
-app.get('/sales', async (req, res) => {
+app.get('/api/sales', async (req, res) => {
   try {
     const sales = await Sale.find().populate('productId', 'name type'); // ربط المبيعات بالمنتج
     res.json(sales);
@@ -353,7 +316,7 @@ app.get('/sales', async (req, res) => {
 
 
 // إضافة منتج جديد
-app.post('/inventory', async (req, res) => {
+app.post('/api/inventory', async (req, res) => {
   const { name, type, wholesalePrice, retailPrice, quantity } = req.body;
 
   if (!name || !type || !wholesalePrice || !retailPrice || !quantity) {
@@ -382,197 +345,10 @@ app.post('/inventory', async (req, res) => {
 //=======================================================================================
 
 
-// PUT /products/:id
-app.put('/api/products/:id', async (req, res) => {
-  console.log("aaaaaaaaaa")
-  try {
-    const { name, type, wholesalePrice, salePrice, quantity, totalSales } = req.body;
-    const product = await Product.findByIdAndUpdate(req.params.id, {
-      name,
-      type,
-      wholesalePrice,
-      salePrice,
-      quantity,
-      totalSales,
-    }, { new: true });
-    res.json(product);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'فشل في تحديث المنتج' });
-  }
-});
 
 
 
 
-
-// 🔹 حفظ عملية البيع في قاعدة البيانات
-app.post("/api/", async (req, res) => {
-  try {
-    const { productId, productName, quantitySold, salePrice, totalSale, paymentMethod, date } = req.body;
-
-    // ✅ إنشاء سجل جديد في مجموعة المبيعات
-    const newSale = new Sale({
-      productId,
-      productName,
-      quantitySold,
-      salePrice,
-      totalSale,
-      paymentMethod,
-      date,
-    });
-
-    await newSale.save();
-
-    // ✅ تحديث الكمية في مجموعة المنتجات
-    await Product.findByIdAndUpdate(productId, {
-      $inc: { quantity: -quantitySold, totalSales: totalSale },
-    });
-
-    res.status(201).json({ message: "✅ عملية البيع ناجحة!", sale: newSale });
-  } catch (error) {
-    console.error("❌ خطأ أثناء تسجيل البيع:", error);
-    res.status(500).json({ message: "❌ فشل في تسجيل البيع!" });
-  }
-});
-// ✅ حذف المنتج من قاعدة البيانات
-app.delete("/api/products/:id", async (req, res) => {
-  try {
-    const deletedProduct = await Product.findByIdAndDelete(req.params.id);
-
-    if (!deletedProduct) {
-      return res.status(404).json({ message: "❌ المنتج غير موجود!" });
-    }
-
-    res.status(200).json({ message: "✅ تم حذف المنتج بنجاح!" });
-  } catch (error) {
-    console.error("❌ خطأ أثناء حذف المنتج:", error);
-    res.status(500).json({ message: "❌ خطأ في الخادم!" });
-  }
-
-});
-
-
-// إضافة عملية بيع جديدة
-app.post('/api/sales', async (req, res) => {
-  try {
-    const { customerName, productName, quantitySold, salePrice, totalSale, paymentMethod, date } = req.body;
-
-    if (!customerName || !productName || !quantitySold || !salePrice || !totalSale || !paymentMethod) {
-      return res.status(400).json({ error: "❌ البيانات غير مكتملة" });
-    }
-
-    // تحديث الكمية المتاحة من المنتج في قاعدة البيانات
-    const product = await Product.findOne({ name: productName });
-    if (!product || product.quantity < quantitySold) {
-      return res.status(400).json({ error: "❌ الكمية المطلوبة غير متوفرة" });
-    }
-
-    product.quantity -= quantitySold;
-    product.totalSales += totalSale;
-    await product.save();
-
-    // إضافة عملية البيع إلى السجل
-    const newSale = new Sales({
-      customerName,
-      productName,
-      quantitySold,
-      salePrice,
-      totalSale,
-      paymentMethod,
-      date: new Date(date),
-    });
-
-    await newSale.save();
-    res.status(201).json({ message: "✅ تم إضافة العملية بنجاح", sale: newSale });
-  } catch (error) {
-    console.error("❌ خطأ أثناء إضافة العملية:", error);
-    res.status(500).json({ error: "❌ فشل إضافة العملية" });
-  }
-});
-
-
-// جلب جميع المبيعات
-app.get('/api/sales', async (req, res) => {
-  try {
-    const sales = await Sales.find();
-    res.json(sales);
-  } catch (error) {
-    console.error("❌ خطأ أثناء جلب المبيعات:", error);
-    res.status(500).json({ error: "❌ فشل جلب المبيعات" });
-  }
-});
-
-
-
-// حذف عملية بيع
-app.delete('/api/sales/:id', async (req, res) => {
-  try {
-    const saleId = req.params.id;
-
-    // إيجاد عملية البيع المراد حذفها
-    const sale = await Sales.findById(saleId);
-    if (!sale) {
-      return res.status(404).json({ error: "❌ العملية غير موجودة" });
-    }
-
-    // تحديث الكميات في المنتج
-    const product = await Product.findOne({ name: sale.productName });
-    if (product) {
-      product.quantity += sale.quantitySold;
-      product.totalSales -= sale.totalSale;
-      await product.save();
-    }
-
-    // حذف العملية
-    await sale.remove();
-    res.json({ message: "✅ تم حذف العملية بنجاح" });
-  } catch (error) {
-    console.error("❌ خطأ أثناء الحذف:", error);
-    res.status(500).json({ error: "❌ فشل حذف العملية" });
-  }
-});
-
-
-// تعديل عملية بيع
-app.put('/api/sales/:id', async (req, res) => {
-  try {
-    const saleId = req.params.id;
-    const { customerName, productName, quantitySold, salePrice, totalSale, paymentMethod, date } = req.body;
-
-    // إيجاد عملية البيع المراد تعديلها
-    const sale = await Sales.findById(saleId);
-    if (!sale) {
-      return res.status(404).json({ error: "❌ العملية غير موجودة" });
-    }
-
-    // تحديث المنتج في حالة تعديل الكمية
-    const product = await Product.findOne({ name: productName });
-    if (!product) {
-      return res.status(400).json({ error: "❌ المنتج غير موجود" });
-    }
-
-    const quantityDifference = quantitySold - sale.quantitySold; // الفرق بين الكمية القديمة والجديدة
-    product.quantity -= quantityDifference;
-    product.totalSales += (totalSale - sale.totalSale);
-    await product.save();
-
-    // تعديل تفاصيل عملية البيع
-    sale.customerName = customerName || sale.customerName;
-    sale.productName = productName || sale.productName;
-    sale.quantitySold = quantitySold || sale.quantitySold;
-    sale.salePrice = salePrice || sale.salePrice;
-    sale.totalSale = totalSale || sale.totalSale;
-    sale.paymentMethod = paymentMethod || sale.paymentMethod;
-    sale.date = new Date(date) || sale.date;
-
-    await sale.save();
-    res.json({ message: "✅ تم تعديل العملية بنجاح", sale });
-  } catch (error) {
-    console.error("❌ خطأ أثناء التعديل:", error);
-    res.status(500).json({ error: "❌ فشل تعديل العملية" });
-  }
-});
 
 
 
