@@ -231,36 +231,25 @@ app.get("/api/products", async (req, res) => {
   }
 });
 
-app.put("/api/products/:id", async (req, res) => {
+// 🛠️ تحديث المنتج
+router.put("/api/:id", async (req, res) => {
   try {
-    console.log("📩 استلام الطلب:", req.body);
+    const { id } = req.params; // الحصول على ID المنتج من الرابط
+    const updatedData = req.body; // البيانات الجديدة التي أرسلها الـ Frontend
 
-    const { quantity, totalSales } = req.body;
-    if (quantity === undefined || totalSales === undefined) {
-      return res.status(400).json({ error: "❌ البيانات غير مكتملة" });
-    }
-
-    const updatedProduct = await Product.findByIdAndUpdate(
-      req.params.id,
-      { 
-        quantity: parseInt(quantity, 10), 
-        totalSales: parseInt(totalSales, 10) 
-      },
-      { new: true }
-    );
+    // البحث عن المنتج وتحديثه
+    const updatedProduct = await Product.findByIdAndUpdate(id, updatedData, { new: true });
 
     if (!updatedProduct) {
-      return res.status(404).json({ error: "❌ المنتج غير موجود" });
+      return res.status(404).json({ message: "❌ المنتج غير موجود!" });
     }
 
-    console.log("✅ تحديث ناجح:", updatedProduct);
-    res.json({ message: "✅ تم التحديث بنجاح", product: updatedProduct });
+    res.status(200).json({ message: "✅ تم تحديث المنتج بنجاح!", product: updatedProduct });
   } catch (error) {
-    console.error("❌ خطأ أثناء التحديث:", error);
-    res.status(500).json({ error: "❌ فشل التحديث" });
+    console.error("❌ خطأ أثناء تحديث المنتج:", error);
+    res.status(500).json({ message: "❌ فشل تحديث المنتج!", error });
   }
 });
-
 // دالة تحديث المنتج بناءً على ID
 app.put("/api/productss/:id", async (req, res) => {
   const { id } = req.params; // الحصول على الـ ID من URL
@@ -337,99 +326,127 @@ app.delete("/api/products/:id", async (req, res) => {
 
 });
 
-app.post("/api/sales", async (req, res) => {
+
+// إضافة عملية بيع جديدة
+app.post('/api/sales', async (req, res) => {
   try {
-    // استخراج البيانات من الجسم (req.body)
-    const { productId, productName, quantitySold, salePrice, totalSale, paymentMethod, date } = req.body;
+    const { customerName, productName, quantitySold, salePrice, totalSale, paymentMethod, date } = req.body;
 
-    // تحقق من وجود جميع الحقول الضرورية
-    if (!productId || !productName || !quantitySold || !salePrice || !totalSale || !paymentMethod || !date) {
-      return res.status(400).json({ error: "❌ جميع الحقول مطلوبة!" });
+    if (!customerName || !productName || !quantitySold || !salePrice || !totalSale || !paymentMethod) {
+      return res.status(400).json({ error: "❌ البيانات غير مكتملة" });
     }
 
-    // تسجيل البيع في قاعدة البيانات
-    const sale = new Sale(req.body);
-    await sale.save();
-
-    // تحديث الكمية في المنتج بعد البيع
-    const product = await Product.findById(productId);
-    if (!product) {
-      return res.status(404).json({ error: "❌ المنتج غير موجود!" });
+    // تحديث الكمية المتاحة من المنتج في قاعدة البيانات
+    const product = await Product.findOne({ name: productName });
+    if (!product || product.quantity < quantitySold) {
+      return res.status(400).json({ error: "❌ الكمية المطلوبة غير متوفرة" });
     }
-    
+
     product.quantity -= quantitySold;
+    product.totalSales += totalSale;
     await product.save();
 
-    // إرسال الاستجابة بنجاح
-    res.status(201).json(sale);
+    // إضافة عملية البيع إلى السجل
+    const newSale = new Sales({
+      customerName,
+      productName,
+      quantitySold,
+      salePrice,
+      totalSale,
+      paymentMethod,
+      date: new Date(date),
+    });
+
+    await newSale.save();
+    res.status(201).json({ message: "✅ تم إضافة العملية بنجاح", sale: newSale });
   } catch (error) {
-    console.error("❌ خطأ في تسجيل البيع:", error);
-    res.status(500).json({ error: "❌ مشكلة في السيرفر أثناء تسجيل البيع!" });
+    console.error("❌ خطأ أثناء إضافة العملية:", error);
+    res.status(500).json({ error: "❌ فشل إضافة العملية" });
   }
 });
 
 
-app.get("/api/sales", async (req, res) => {
+// جلب جميع المبيعات
+app.get('/api/sales', async (req, res) => {
   try {
-    const sales = await Sale.find().sort({ date: -1 }); // ترتيب تنازلي حسب التاريخ
-    res.status(200).json(sales);
+    const sales = await Sales.find();
+    res.json(sales);
   } catch (error) {
     console.error("❌ خطأ أثناء جلب المبيعات:", error);
-    res.status(500).json({ message: "❌ خطأ في الخادم!" });
+    res.status(500).json({ error: "❌ فشل جلب المبيعات" });
   }
 });
 
 
 
-// 🗑 حذف عملية بيع
-app.delete("/api/sales/:id", async (req, res) => {
+// حذف عملية بيع
+app.delete('/api/sales/:id', async (req, res) => {
   try {
-    const { id } = req.params;
-    const deletedSale = await Sale.findByIdAndDelete(id);
+    const saleId = req.params.id;
 
-    if (!deletedSale) {
-      return res.status(404).json({ message: "❌ لم يتم العثور على العملية!" });
+    // إيجاد عملية البيع المراد حذفها
+    const sale = await Sales.findById(saleId);
+    if (!sale) {
+      return res.status(404).json({ error: "❌ العملية غير موجودة" });
     }
 
-    res.json({ message: "✅ تم حذف العملية بنجاح!", deletedSale });
+    // تحديث الكميات في المنتج
+    const product = await Product.findOne({ name: sale.productName });
+    if (product) {
+      product.quantity += sale.quantitySold;
+      product.totalSales -= sale.totalSale;
+      await product.save();
+    }
+
+    // حذف العملية
+    await sale.remove();
+    res.json({ message: "✅ تم حذف العملية بنجاح" });
   } catch (error) {
     console.error("❌ خطأ أثناء الحذف:", error);
-    res.status(500).json({ message: "❌ خطأ في الخادم الداخلي" });
+    res.status(500).json({ error: "❌ فشل حذف العملية" });
   }
 });
 
 
-// 🛠️ تحديث عملية بيع
-app.put("/api/sales/:id", async (req, res) => {
+// تعديل عملية بيع
+app.put('/api/sales/:id', async (req, res) => {
   try {
-    const { id } = req.params; // الحصول على معرف العملية
-    const { productName, quantitySold, salePrice, paymentMethod } = req.body; // البيانات الجديدة
+    const saleId = req.params.id;
+    const { customerName, productName, quantitySold, salePrice, totalSale, paymentMethod, date } = req.body;
 
-    // ✅ تحديث العملية في قاعدة البيانات
-    const updatedSale = await Sale.findByIdAndUpdate(
-      id,
-      {
-        productName,
-        quantitySold,
-        salePrice,
-        totalSale: quantitySold * salePrice, // إعادة حساب إجمالي البيع
-        paymentMethod,
-      },
-      { new: true } // إرجاع الوثيقة المحدثة
-    );
-
-    // تحقق إذا لم يتم العثور على العملية
-    if (!updatedSale) {
-      return res.status(404).json({ message: "❌ لم يتم العثور على العملية!" });
+    // إيجاد عملية البيع المراد تعديلها
+    const sale = await Sales.findById(saleId);
+    if (!sale) {
+      return res.status(404).json({ error: "❌ العملية غير موجودة" });
     }
 
-    res.status(200).json({ message: "✅ تم تحديث العملية بنجاح!", sale: updatedSale });
+    // تحديث المنتج في حالة تعديل الكمية
+    const product = await Product.findOne({ name: productName });
+    if (!product) {
+      return res.status(400).json({ error: "❌ المنتج غير موجود" });
+    }
+
+    const quantityDifference = quantitySold - sale.quantitySold; // الفرق بين الكمية القديمة والجديدة
+    product.quantity -= quantityDifference;
+    product.totalSales += (totalSale - sale.totalSale);
+    await product.save();
+
+    // تعديل تفاصيل عملية البيع
+    sale.customerName = customerName || sale.customerName;
+    sale.productName = productName || sale.productName;
+    sale.quantitySold = quantitySold || sale.quantitySold;
+    sale.salePrice = salePrice || sale.salePrice;
+    sale.totalSale = totalSale || sale.totalSale;
+    sale.paymentMethod = paymentMethod || sale.paymentMethod;
+    sale.date = new Date(date) || sale.date;
+
+    await sale.save();
+    res.json({ message: "✅ تم تعديل العملية بنجاح", sale });
   } catch (error) {
-    console.error("❌ خطأ أثناء التحديث:", error);
-    res.status(500).json({ message: "❌ حدث خطأ أثناء التحديث!", error });
+    console.error("❌ خطأ أثناء التعديل:", error);
+    res.status(500).json({ error: "❌ فشل تعديل العملية" });
   }
 });
-
 
 
 
