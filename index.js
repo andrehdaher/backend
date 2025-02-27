@@ -352,6 +352,32 @@ app.get('/sales', async (req, res) => {
 
 
 
+// إضافة منتج جديد
+app.post('/inventory', async (req, res) => {
+  const { name, type, wholesalePrice, retailPrice, quantity } = req.body;
+
+  if (!name || !type || !wholesalePrice || !retailPrice || !quantity) {
+    return res.status(400).send('الرجاء إدخال جميع البيانات');
+  }
+
+  try {
+    const newProduct = new Product({
+      name,
+      type,
+      wholesalePrice,
+      retailPrice,
+      quantity,
+    });
+
+    await newProduct.save();
+    res.status(201).send('تم إضافة المنتج بنجاح');
+  } catch (error) {
+    console.error('خطأ في إضافة المنتج:', error);
+    res.status(500).send('حدث خطأ أثناء إضافة المنتج');
+  }
+});
+
+
 
 //=======================================================================================
 
