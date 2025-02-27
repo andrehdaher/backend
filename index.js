@@ -232,7 +232,7 @@ app.get("/api/products", async (req, res) => {
 });
 
 // 🛠️ تحديث المنتج
-router.put("/api/:id", async (req, res) => {
+app.put("/api/:id", async (req, res) => {
   try {
     const { id } = req.params; // الحصول على ID المنتج من الرابط
     const updatedData = req.body; // البيانات الجديدة التي أرسلها الـ Frontend
@@ -250,33 +250,8 @@ router.put("/api/:id", async (req, res) => {
     res.status(500).json({ message: "❌ فشل تحديث المنتج!", error });
   }
 });
-// دالة تحديث المنتج بناءً على ID
-app.put("/api/productss/:id", async (req, res) => {
-  const { id } = req.params; // الحصول على الـ ID من URL
-  const updatedProduct = req.body; // الحصول على البيانات من الجسم (body)
 
-  
 
-  try {
-    // التحقق من وجود المنتج
-    const product = await Product.findById(id);
-    if (!product) {
-      return res.status(404).json({ error: "❌ المنتج غير موجود!" });
-    }
-
-    // تحديث المنتج
-    const result = await Product.findByIdAndUpdate(id, updatedProduct, { new: true });
-
-    // التأكد من أن المنتج تم تحديثه بنجاح
-    console.log("Updated Product:", result);
-
-    // إعادة النتيجة (المنتج المحدث)
-    res.json({ message: "✅ تم تعديل المنتج بنجاح!", product: result });
-  } catch (error) {
-    console.error("Error:", error);
-    res.status(500).json({ error: "❌ حدث خطأ في الخادم!" });
-  }
-});
 
 
 
