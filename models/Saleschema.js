@@ -1,36 +1,31 @@
-const mongoose = require("mongoose");
+// models/Sale.js
+const mongoose = require('mongoose');
 
-const salesSchema = new mongoose.Schema({
-  customerName: {
+const saleSchema = new mongoose.Schema({
+  productId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Product',
+    required: true,
+  },
+  retailPrice: {
+    type: Number,
+    required: true,
+  },
+  buyerName: {
     type: String,
-    required: true,
-  },
-  productName: {
-    type: String,
-    required: true,
-  },
-  quantitySold: {
-    type: Number,
-    required: true,
-  },
-  salePrice: {
-    type: Number,
-    required: true,
-  },
-  totalSale: {
-    type: Number,
     required: true,
   },
   paymentMethod: {
     type: String,
-    enum: ['نقدًا', 'دين'], // تحديد طرق الدفع المتاحة
     required: true,
+    enum: ['كاش', 'دين'],
   },
-  date: {
+  saleDate: {
     type: Date,
-    default: Date.now, // تاريخ البيع
+    default: Date.now,
   },
 });
 
-const Sales = mongoose.model("Sales", salesSchema);
-module.exports = Sales;
+const Sale = mongoose.model('Sale', saleSchema);
+
+module.exports = Sale;

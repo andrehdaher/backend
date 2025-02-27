@@ -297,7 +297,7 @@ app.delete('/inventory/:id', async (req, res) => {
 
 
 
-// 5. بيع منتج مع التفاصيل المضافة
+// تعديل بيع المنتج ليشمل تسجيل المبيعات
 app.post('/inventory/:id/sell', async (req, res) => {
   const { id } = req.params;
   const { retailPrice, buyerName, paymentMethod } = req.body;
@@ -316,19 +316,40 @@ app.post('/inventory/:id/sell', async (req, res) => {
     if (product.quantity > 0) {
       product.quantity -= 1;
       await product.save();
+
+      // تسجيل عملية البيع في سجل المبيعات
+      const sale = new Sale({
+        productId: product._id,
+        retailPrice,
+        buyerName,
+        paymentMethod,
+      });
+
+      await sale.save();
+      res.status(200).send('تم بيع المنتج بنجاح');
     } else {
       return res.status(400).send('المنتج غير متوفر');
     }
-
-    // يمكنك حفظ بيانات البيع في سجل خاص أو إضافتها إلى قاعدة البيانات إذا لزم الأمر
-    console.log(`تم بيع المنتج: ${product.name}, السعر: ${retailPrice}, المشتري: ${buyerName}, طريقة الدفع: ${paymentMethod}`);
-
-    res.status(200).send('تم بيع المنتج بنجاح');
   } catch (error) {
     console.error('خطأ في بيع المنتج:', error);
     res.status(500).send('حدث خطأ أثناء بيع المنتج');
   }
 });
+
+
+
+
+// 6. عرض جميع المبيعات
+app.get('/sales', async (req, res) => {
+  try {
+    const sales = await Sale.find().populate('productId', 'name type'); // ربط المبيعات بالمنتج
+    res.json(sales);
+  } catch (error) {
+    console.error("خطأ في جلب المبيعات:", error);
+    res.status(500).send("حدث خطأ أثناء جلب المبيعات");
+  }
+});
+
 
 
 
