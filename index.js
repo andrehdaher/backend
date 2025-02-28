@@ -181,10 +181,9 @@ app.put("/api/update/:id", async (req, res) => {
 
 
 
-// 1. جلب جميع المنتجات
 app.get('/api/inventory', async (req, res) => {
   try {
-    const products = await Product.find();
+    const products = await Product.find({}, 'name type wholesalePrice retailPrice quantity'); // تحديد الحقول المسترجعة
     res.json(products);
   } catch (error) {
     console.error("خطأ في جلب المنتجات:", error);
@@ -216,10 +215,10 @@ app.post('/api/inventory', async (req, res) => {
 // 3. تعديل سعر منتج
 app.put('/api/inventory/:id', async (req, res) => {
   const { id } = req.params;
-  const { retailPrice } = req.body;
+  const { wholesalePrice, retailPrice } = req.body;
 
-  if (!retailPrice || isNaN(retailPrice)) {
-    return res.status(400).send("الرجاء إدخال سعر صحيح");
+  if (!wholesalePrice || isNaN(wholesalePrice) || !retailPrice || isNaN(retailPrice)) {
+    return res.status(400).send("الرجاء إدخال أسعار صحيحة");
   }
 
   try {
@@ -228,9 +227,11 @@ app.put('/api/inventory/:id', async (req, res) => {
       return res.status(404).send("المنتج غير موجود");
     }
     
+    product.wholesalePrice = wholesalePrice;
     product.retailPrice = retailPrice;
     await product.save();
-    res.status(200).send('تم تعديل السعر بنجاح');
+
+    res.status(200).json({ message: "تم تعديل الأسعار بنجاح", product });
   } catch (error) {
     console.error("خطأ في تعديل المنتج:", error);
     res.status(500).send("حدث خطأ أثناء تعديل المنتج");
@@ -258,15 +259,13 @@ app.delete('/api/inventory/:id', async (req, res) => {
 
 
 
-
-
 // تعديل بيع المنتج ليشمل تسجيل المبيعات
 app.post('/api/inventory/:id/sell', async (req, res) => {
   const { id } = req.params;
   const { retailPrice, buyerName, paymentMethod } = req.body;
 
-  if (!retailPrice || !buyerName || !paymentMethod) {
-    return res.status(400).send('الرجاء إدخال جميع البيانات');
+  if (!retailPrice || isNaN(retailPrice) || !buyerName || !paymentMethod) {
+    return res.status(400).send('الرجاء إدخال جميع البيانات بشكل صحيح');
   }
 
   try {
@@ -275,37 +274,37 @@ app.post('/api/inventory/:id/sell', async (req, res) => {
       return res.status(404).send('المنتج غير موجود');
     }
 
-    // تقليل الكمية عند البيع (إذا كانت الكمية موجودة)
-    if (product.quantity > 0) {
-      product.quantity -= 1;
-      await product.save();
-
-      // تسجيل عملية البيع في سجل المبيعات
-      const sale = new Sale({
-        productId: product._id,
-        retailPrice,
-        buyerName,
-        paymentMethod,
-      });
-
-      await sale.save();
-      res.status(200).send('تم بيع المنتج بنجاح');
-    } else {
-      return res.status(400).send('المنتج غير متوفر');
+    if (!product.quantity || product.quantity <= 0) {
+      return res.status(400).send('المنتج غير متوفر في المخزون');
     }
+
+    product.quantity -= 1; // تقليل الكمية
+    await product.save();
+
+    // تسجيل عملية البيع
+    const sale = new Sale({
+      productId: product._id,
+      retailPrice: Number(retailPrice), // التأكد من أنه رقم
+      buyerName,
+      paymentMethod,
+      saleDate: new Date(), // تسجيل تاريخ البيع
+    });
+
+    await sale.save();
+    res.status(200).send('تم بيع المنتج بنجاح');
   } catch (error) {
     console.error('خطأ في بيع المنتج:', error);
     res.status(500).send('حدث خطأ أثناء بيع المنتج');
   }
 });
 
-
-
-
 // 6. عرض جميع المبيعات
 app.get('/api/sales', async (req, res) => {
   try {
-    const sales = await Sale.find().populate('productId', 'name type'); // ربط المبيعات بالمنتج
+    const sales = await Sale.find()
+      .populate('productId', 'name type') // جلب اسم ونوع المنتج فقط
+      .sort({ saleDate: -1 }); // ترتيب المبيعات من الأحدث إلى الأقدم
+
     res.json(sales);
   } catch (error) {
     console.error("خطأ في جلب المبيعات:", error);
