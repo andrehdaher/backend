@@ -261,6 +261,7 @@ app.delete('/api/inventory/:id', async (req, res) => {
 
 // تعديل بيع المنتج ليشمل تسجيل المبيعات
 app.post('/api/inventory/:id/sell', async (req, res) => {
+  console.log(req.body)
   const { id } = req.params;
   const { retailPrice, buyerName, paymentMethod } = req.body;
 
@@ -270,6 +271,7 @@ app.post('/api/inventory/:id/sell', async (req, res) => {
 
   try {
     const product = await Product.findById(id);
+    console.log(product);
     if (!product) {
       return res.status(404).send('المنتج غير موجود');
     }
@@ -280,6 +282,7 @@ app.post('/api/inventory/:id/sell', async (req, res) => {
 
     product.quantity -= 1; // تقليل الكمية
     await product.save();
+    console.log("بعد تحديث المخزون:", product);
 
     // تسجيل عملية البيع
     const sale = new Sale({
@@ -289,6 +292,7 @@ app.post('/api/inventory/:id/sell', async (req, res) => {
       paymentMethod,
       saleDate: new Date(), // تسجيل تاريخ البيع
     });
+    console.log("عملية البيع:", sale);
 
     await sale.save();
     res.status(200).send('تم بيع المنتج بنجاح');
