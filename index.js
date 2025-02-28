@@ -292,7 +292,7 @@ app.post('/api/inventory/:id/sell', async (req, res) => {
       paymentMethod,
       saleDate: new Date(), // تسجيل تاريخ البيع
     });
-    console.log("عملية البيع:", sale);
+    console.log("عملية البيع:", sale1);
 
     await sale1.save();
     res.status(200).send('تم بيع المنتج بنجاح');
