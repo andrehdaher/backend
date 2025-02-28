@@ -294,7 +294,7 @@ app.post('/api/inventory/:id/sell', async (req, res) => {
     });
     console.log("عملية البيع:", sale);
 
-    await sale.save();
+    await Sale.save();
     res.status(200).send('تم بيع المنتج بنجاح');
   } catch (error) {
     console.error('خطأ في بيع المنتج:', error);
