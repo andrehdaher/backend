@@ -285,7 +285,7 @@ app.post('/api/inventory/:id/sell', async (req, res) => {
     console.log("بعد تحديث المخزون:", product);
 
     // تسجيل عملية البيع
-    const sale = new Sale({
+    const sale1 = new Sale({
       productId: product._id,
       retailPrice: Number(retailPrice), // التأكد من أنه رقم
       buyerName,
@@ -294,7 +294,7 @@ app.post('/api/inventory/:id/sell', async (req, res) => {
     });
     console.log("عملية البيع:", sale);
 
-    await Sale.save();
+    await sale1.save();
     res.status(200).send('تم بيع المنتج بنجاح');
   } catch (error) {
     console.error('خطأ في بيع المنتج:', error);
