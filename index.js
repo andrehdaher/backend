@@ -219,7 +219,7 @@ app.get("/api/payments", async (req, res) => {
 
 app.get("/api/payments", async (req, res) => {
   try {
-    const users = await addUser.find().select("userName amount");
+    const users = await Payment.find().select("userName amount");
     res.status(200).json(users);
   } catch (error) {
     console.error("Error fetching payments:", error);
