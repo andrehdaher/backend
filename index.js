@@ -203,30 +203,35 @@ app.put("/api/update/:id", async (req, res) => {
     res.status(500).json({ message: "Error updating user", error });
   }
 });
-
 app.get("/api/payments", async (req, res) => {
   try {
-    const users = await Payment.find().select("fullName payments");
-    console.log("📢 البيانات المسترجعة من قاعدة البيانات:", users);
-    res.status(200).json(users);
-  } catch (error) {
-    console.error("❌ خطأ أثناء جلب البيانات:", error);
-    res.status(500).json({ message: "خطأ أثناء جلب البيانات", error });
-  }
-});
+    // تجميع الدفعات حسب userId وإرسال userName والدفعات كمصفوفة
+    const paymentsByUser = await Payment.aggregate([
+      {
+        $group: {
+          _id: "$userId",
+          userName: { $first: "$userName" },
+          payments: {
+            $push: { amount: "$amount", date: "$date" }
+          }
+        }
+      },
+      {
+        $project: {
+          _id: 0,
+          userName: 1,
+          payments: 1
+        }
+      }
+    ]);
 
-
-
-app.get("/api/payments", async (req, res) => {
-  try {
-    const users = await Payment.find().select("userName amount");
-    res.status(200).json(users);
+    console.log("Grouped Payments:", paymentsByUser);
+    res.status(200).json(paymentsByUser);
   } catch (error) {
     console.error("Error fetching payments:", error);
     res.status(500).json({ message: "Error fetching payments", error });
   }
 });
-
 
 app.get('/api/inventory', async (req, res) => {
   try {
