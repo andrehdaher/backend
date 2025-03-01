@@ -156,21 +156,28 @@ app.delete("/api/delete/:id", async (req, res) => {
 });
 
 
-// ✅ تحديث بيانات المستخدم
 app.put("/api/update/:id", async (req, res) => {
   const { id } = req.params;
-  const updateFields = req.body;
-  
-  if (updateFields.manualUpdate) {
-    updateFields.lastUpdatedMonth = new Date(); // إضافة تاريخ التحديث إذا كان تحديثًا يدويًا
-  }
+  const { paid, manualUpdate, ...updateFields } = req.body;
 
   try {
-    const updatedUser = await addUser.findByIdAndUpdate(id, updateFields, { new: true });
-
-    if (!updatedUser) {
+    const user = await addUser.findById(id);
+    if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
+
+    // ✅ تحديث `paid` بإضافة الدفعة الجديدة بدلًا من استبداله
+    if (paid !== undefined) {
+      updateFields.paid = (user.paid || 0) + Number(paid);
+    }
+
+    // ✅ إذا كان التحديث يدويًا، نقوم بتحديث `lastUpdatedMonth`
+    if (manualUpdate) {
+      updateFields.lastUpdatedMonth = new Date();
+    }
+
+    // ✅ تحديث بيانات المستخدم
+    const updatedUser = await addUser.findByIdAndUpdate(id, updateFields, { new: true });
 
     res.status(200).json(updatedUser);
   } catch (error) {
@@ -178,9 +185,6 @@ app.put("/api/update/:id", async (req, res) => {
     res.status(500).json({ message: "Error updating user", error });
   }
 });
-
-
-
 
 
 app.get('/api/inventory', async (req, res) => {
