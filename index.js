@@ -321,7 +321,7 @@ app.get('/api/sales', async (req, res) => {
 
 
 // تحديث طريقة الدفع
-app.put('api/sales/:id', async (req, res) => {
+app.put('/api/sales/:id', async (req, res) => {
   try {
       const { paymentMethod } = req.body;
       if (!['كاش', 'دين'].includes(paymentMethod)) {
