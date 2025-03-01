@@ -10,6 +10,8 @@ const addUser = require("./models/add-userSchema");
 const Product = require("./models/productSchema "); 
 const Passport  = require("./models/passportSchema"); 
 const Sale = require("./models/Saleschema"); 
+const Payment = require("./models/paymentSchema"); // استيراد موديل المدفوعات
+
 require("dotenv").config();
 
 var methodOverride = require("method-override");
@@ -175,6 +177,16 @@ app.put("/api/update/:id", async (req, res) => {
         // عند إضافة دفعة، نقوم بجمع القيمة الجديدة مع القيمة السابقة
         updateFields.paid = Number(user.paid || 0) + Number(paid);
       }
+
+      // ✅ إضافة دفعة جديدة إلى جدول المدفوعات
+      const newPayment = new Payment({
+        userId: user._id,
+        amount: Number(paid),
+        userName: user.fullName, // اسم المستخدم
+      });
+
+      // حفظ الدفعة الجديدة
+      await newPayment.save();
     }
 
     // تحديث تاريخ آخر تحديث إذا كان التحديث يدويًا
@@ -185,10 +197,31 @@ app.put("/api/update/:id", async (req, res) => {
     // تحديث بيانات المستخدم وإرجاع النتيجة الجديدة
     const updatedUser = await addUser.findByIdAndUpdate(id, updateFields, { new: true });
 
-    res.status(200).json(updatedUser);
+    res.status(200).json({ updatedUser, payment: { userName: user.fullName, amount: paid, date: new Date().toISOString() } });
   } catch (error) {
     console.error("Error updating user:", error);
     res.status(500).json({ message: "Error updating user", error });
+  }
+});
+
+app.get("/api/payments", async (req, res) => {
+  try {
+    const users = await Payment.find().select("fullName payments");
+    res.status(200).json(users);
+  } catch (error) {
+    console.error("Error fetching payments:", error);
+    res.status(500).json({ message: "Error fetching payments", error });
+  }
+});
+
+
+app.get("/api/payments", async (req, res) => {
+  try {
+    const users = await addUser.find().select("fullName payments");
+    res.status(200).json(users);
+  } catch (error) {
+    console.error("Error fetching payments:", error);
+    res.status(500).json({ message: "Error fetching payments", error });
   }
 });
 
