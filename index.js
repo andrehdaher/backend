@@ -166,17 +166,23 @@ app.put("/api/update/:id", async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // ✅ تحديث `paid` بإضافة الدفعة الجديدة بدلًا من استبداله
+    // إذا كان هناك قيمة لـ paid
     if (paid !== undefined) {
-      updateFields.paid = (user.paid || 0) + Number(paid);
+      // عند التحديث اليدوي، نقوم بتعيين القيمة الجديدة مباشرة
+      if (manualUpdate) {
+        updateFields.paid = Number(paid);
+      } else {
+        // عند إضافة دفعة، نقوم بجمع القيمة الجديدة مع القيمة السابقة
+        updateFields.paid = Number(user.paid || 0) + Number(paid);
+      }
     }
 
-    // ✅ إذا كان التحديث يدويًا، نقوم بتحديث `lastUpdatedMonth`
+    // تحديث تاريخ آخر تحديث إذا كان التحديث يدويًا
     if (manualUpdate) {
       updateFields.lastUpdatedMonth = new Date();
     }
 
-    // ✅ تحديث بيانات المستخدم
+    // تحديث بيانات المستخدم وإرجاع النتيجة الجديدة
     const updatedUser = await addUser.findByIdAndUpdate(id, updateFields, { new: true });
 
     res.status(200).json(updatedUser);
