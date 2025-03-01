@@ -176,9 +176,17 @@ app.put("/api/update/:id", async (req, res) => {
       } else {
         // عند إضافة دفعة، نقوم بجمع القيمة الجديدة مع القيمة السابقة
         updateFields.paid = Number(user.paid || 0) + Number(paid);
-      }
+    
 
-
+      // ✅ إضافة دفعة جديدة إلى جدول المدفوعات
+      const newPayment = new Payment({
+        userId: user._id,
+        amount: Number(paid),
+        userName: user.fullName, // اسم المستخدم
+      });
+    }
+      // حفظ الدفعة الجديدة
+      await newPayment.save();
     }
 
     // تحديث تاريخ آخر تحديث إذا كان التحديث يدويًا
