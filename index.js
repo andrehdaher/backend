@@ -117,6 +117,9 @@ app.get("/api/user/:email", async (req, res) => {
 });
 
 
+app.use(verifyRole());
+
+
 // ✅ جلب جميع المستخدمين (للمشرف فقط)
 
 app.get("/api/", async (req, res) => {
