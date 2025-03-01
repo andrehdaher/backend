@@ -320,6 +320,30 @@ app.get('/api/sales', async (req, res) => {
 
 
 
+// تحديث طريقة الدفع
+app.put('api/sales/:id', async (req, res) => {
+  try {
+      const { paymentMethod } = req.body;
+      if (!['كاش', 'دين'].includes(paymentMethod)) {
+          return res.status(400).json({ message: "طريقة دفع غير صالحة" });
+      }
+
+      const sale = await Sale.findByIdAndUpdate(req.params.id, { paymentMethod }, { new: true });
+
+      if (!sale) {
+          return res.status(404).json({ message: "لم يتم العثور على البيع" });
+      }
+
+      res.json(sale);
+  } catch (error) {
+      console.error("خطأ في تحديث حالة الدفع:", error);
+      res.status(500).json({ message: "خطأ في السيرفر" });
+  }
+});
+
+
+
+
 // إضافة منتج جديد
 app.post('/api/inventory', async (req, res) => {
   const { name, type, wholesalePrice, retailPrice, quantity } = req.body;
