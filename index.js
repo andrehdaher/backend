@@ -157,7 +157,6 @@ app.delete("/api/delete/:id", async (req, res) => {
   }
 });
 
-
 app.put("/api/update/:id", async (req, res) => {
   const { id } = req.params;
   const { paid, manualUpdate, ...updateFields } = req.body;
@@ -168,28 +167,25 @@ app.put("/api/update/:id", async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // إذا كان هناك قيمة لـ paid
     if (paid !== undefined) {
-      // عند التحديث اليدوي، نقوم بتعيين القيمة الجديدة مباشرة
       if (manualUpdate) {
+        // عند التحديث اليدوي، يتم تعيين القيمة الجديدة مباشرة دون حفظ دفعة جديدة
         updateFields.paid = Number(paid);
       } else {
         // عند إضافة دفعة، نقوم بجمع القيمة الجديدة مع القيمة السابقة
         updateFields.paid = Number(user.paid || 0) + Number(paid);
-    
 
-      // ✅ إضافة دفعة جديدة إلى جدول المدفوعات
-      const newPayment = new Payment({
-        userId: user._id,
-        amount: Number(paid),
-        userName: user.fullName, // اسم المستخدم
-      });
-    }
-      // حفظ الدفعة الجديدة
-      await newPayment.save();
+        // إضافة دفعة جديدة إلى جدول المدفوعات فقط عند الإضافة (وليس التحديث اليدوي)
+        const newPayment = new Payment({
+          userId: user._id,
+          amount: Number(paid),
+          userName: user.fullName,
+        });
+        await newPayment.save();
+      }
     }
 
-    // تحديث تاريخ آخر تحديث إذا كان التحديث يدويًا
+    // تحديث تاريخ آخر تحديث فقط في حالة التحديث اليدوي
     if (manualUpdate) {
       updateFields.lastUpdatedMonth = new Date();
     }
@@ -197,12 +193,17 @@ app.put("/api/update/:id", async (req, res) => {
     // تحديث بيانات المستخدم وإرجاع النتيجة الجديدة
     const updatedUser = await addUser.findByIdAndUpdate(id, updateFields, { new: true });
 
-    res.status(200).json({ updatedUser, payment: { userName: user.fullName, amount: paid, date: new Date().toISOString() } });
+    // في حالة التحديث اليدوي، لن يتم إرجاع بيانات دفعة جديدة
+    res.status(200).json({ 
+      updatedUser, 
+      payment: manualUpdate ? null : { userName: user.fullName, amount: paid, date: new Date().toISOString() } 
+    });
   } catch (error) {
     console.error("Error updating user:", error);
     res.status(500).json({ message: "Error updating user", error });
   }
 });
+
 app.get("/api/payments", async (req, res) => {
   try {
     // تجميع الدفعات حسب userId وإرسال userName والدفعات كمصفوفة
