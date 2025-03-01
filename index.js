@@ -207,17 +207,19 @@ app.put("/api/update/:id", async (req, res) => {
 app.get("/api/payments", async (req, res) => {
   try {
     const users = await Payment.find().select("fullName payments");
+    console.log("📢 البيانات المسترجعة من قاعدة البيانات:", users);
     res.status(200).json(users);
   } catch (error) {
-    console.error("Error fetching payments:", error);
-    res.status(500).json({ message: "Error fetching payments", error });
+    console.error("❌ خطأ أثناء جلب البيانات:", error);
+    res.status(500).json({ message: "خطأ أثناء جلب البيانات", error });
   }
 });
 
 
+
 app.get("/api/payments", async (req, res) => {
   try {
-    const users = await addUser.find().select("fullName payments");
+    const users = await addUser.find().select("userName amount");
     res.status(200).json(users);
   } catch (error) {
     console.error("Error fetching payments:", error);
