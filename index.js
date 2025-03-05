@@ -568,11 +568,16 @@ app.post('/api/payment', async (req, res) => {
   try {
     const newPayment = new Paymentcompany(req.body);
     await newPayment.save();
-    res.status(201).json({ message: 'تم حفظ البيانات بنجاح!' });
+    
+    // إعادة ترتيب جميع البيانات المخزنة حسب اسم الشركة
+    const payments = await Paymentcompany.find().sort({ company: 1 });
+    
+    res.status(201).json({ message: 'تم حفظ البيانات بنجاح!', sortedPayments: payments });
   } catch (error) {
     res.status(500).json({ error: 'حدث خطأ أثناء الحفظ' });
   }
 });
+
 
 
 
