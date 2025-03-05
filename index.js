@@ -11,6 +11,7 @@ const Product = require("./models/productSchema ");
 const Passport  = require("./models/passportSchema"); 
 const Sale = require("./models/Saleschema"); 
 const Payment = require("./models/paymentSchema"); // استيراد موديل المدفوعات
+const Paymentcompany = require("./models/paymentcompany"); // استيراد موديل المدفوعات
 
 require("dotenv").config();
 
@@ -83,7 +84,7 @@ app.post("/api/signup", async (req, res) => {
       }
   
       const token = jwt.sign({ id: user._id, role: user.role }, "secretKey", {
-        expiresIn: "10m",
+        expiresIn: "100m",
       });
   
       
@@ -558,6 +559,21 @@ app.put("/api/passports/:id", upload.array("idImages", 10), async (req, res) => 
     res.status(500).json({ message: "حدث خطأ في التعديل، يرجى المحاولة لاحقًا." });
   }
 });
+
+
+
+
+// دالة لحفظ البيانات في قاعدة البيانات
+app.post('/api/payment', async (req, res) => {
+  try {
+    const newPayment = new Paymentcompany(req.body);
+    await newPayment.save();
+    res.status(201).json({ message: 'تم حفظ البيانات بنجاح!' });
+  } catch (error) {
+    res.status(500).json({ error: 'حدث خطأ أثناء الحفظ' });
+  }
+});
+
 
 
 const port = process.env.PORT || 3000; // استخدام متغير البيئة
