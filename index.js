@@ -569,7 +569,7 @@ app.post('/api/payment', async (req, res) => {
     const newPayment = new Paymentcompany(req.body);
     await newPayment.save();
 
-    // إعادة ترتيب البيانات أبجديًا وفق اللغة العربية
+    // ترتيب البيانات حسب اسم الشركة (أبجديًا باللغة العربية)
     const payments = await Paymentcompany.find().collation({ locale: 'ar' }).sort({ company: 1 });
 
     res.status(201).json({ message: 'تم حفظ البيانات بنجاح!', sortedPayments: payments });
