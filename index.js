@@ -618,6 +618,37 @@ app.get('/api/providers/balance', async (req, res) => {
 
 
 
+app.get('/api/payments/search', async (req, res) => {
+  try {
+    const { company, startDate, endDate } = req.query;
+
+    // إنشاء فلتر البحث
+    let filter = {};
+
+    // البحث حسب الشركة إذا تم تحديدها
+    if (company) {
+      filter.company = company;
+    }
+
+    // البحث حسب الفترة الزمنية إذا تم تحديدها
+    if (startDate && endDate) {
+      filter.date = {
+        $gte: new Date(startDate), // التاريخ من
+        $lte: new Date(endDate)    // التاريخ إلى
+      };
+    }
+
+    const payments = await Paymentcompany.find(filter);
+    res.json(payments);
+    
+  } catch (error) {
+    console.error("خطأ أثناء البحث عن المدفوعات:", error);
+    res.status(500).json({ error: "حدث خطأ أثناء البحث." });
+  }
+});
+
+
+
 
 const port = process.env.PORT || 3000; // استخدام متغير البيئة
 app.listen(port, () => {
