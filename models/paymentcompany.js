@@ -1,10 +1,10 @@
 const mongoose = require('mongoose');
 
 const paymentSchema1 = new mongoose.Schema({
-  number: String,
-  speed: String,
-  paidAmount: String,
-  requiredAmount: String,
+  number: Number,
+  speed: Number,
+  paidAmount: Number,
+  requiredAmount: Number,
   company: String,
   provider: String,
 });
