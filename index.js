@@ -566,13 +566,25 @@ app.put("/api/passports/:id", upload.array("idImages", 10), async (req, res) => 
 // دالة لحفظ البيانات في قاعدة البيانات
 app.post('/api/payment', async (req, res) => {
   try {
-    const newPayment = new Paymentcompany(req.body);
+    const { company, provider, number, speed, paidAmount, requiredAmount } = req.body;
+
+    const newPayment = new Paymentcompany({
+      company,
+      provider,
+      number,
+      speed,
+      paidAmount,
+      requiredAmount,
+      date: new Date() // 🗓️ حفظ التاريخ الحالي عند التسديد
+    });
+
     await newPayment.save();
-    res.status(201).json({ message: 'تم حفظ البيانات بنجاح!' });
+    res.status(201).json({ message: 'تم حفظ الدفع بنجاح!', Paymentcompany: newPayment });
+
   } catch (error) {
-    res.status(500).json({ error: 'حدث خطأ أثناء الحفظ' });
-  }
-});
+    console.error("خطأ أثناء حفظ الدفع:", error);
+    res.status(500).json({ error: "حدث خطأ أثناء حفظ البيانات." });
+}});
 
 
 

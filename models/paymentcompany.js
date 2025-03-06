@@ -7,6 +7,8 @@ const paymentSchema1 = new mongoose.Schema({
   requiredAmount: Number,
   company: String,
   provider: String,
+  date: { type: Date, default: Date.now } // 🗓️ إضافة حقل التاريخ الافتراضي
+
 });
 
 const Paymentcompany = mongoose.model('Paymentcompany', paymentSchema1);
