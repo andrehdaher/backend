@@ -568,15 +568,42 @@ app.post('/api/payment', async (req, res) => {
   try {
     const newPayment = new Paymentcompany(req.body);
     await newPayment.save();
-
-    // ترتيب البيانات حسب اسم الشركة (أبجديًا باللغة العربية)
-    const payments = await Paymentcompany.find().collation({ locale: 'ar' }).sort({ company: 1 });
-
-    res.status(201).json({ message: 'تم حفظ البيانات بنجاح!', sortedPayments: payments });
+    res.status(201).json({ message: 'تم حفظ البيانات بنجاح!' });
   } catch (error) {
     res.status(500).json({ error: 'حدث خطأ أثناء الحفظ' });
   }
 });
+
+
+
+// ✅ API لجلب أرصدة الشركات
+app.get('/api/companies/balance', async (req, res) => {
+  try {
+    const companies = await Paymentcompany.aggregate([
+      { $group: { _id: "$company", totalPaid: { $sum: "$paidAmount" } } }
+    ]);
+
+    res.json(companies.map(company => ({ name: company._id, totalPaid: company.totalPaid })));
+  } catch (error) {
+    console.error("خطأ أثناء جلب أرصدة الشركات:", error);
+    res.status(500).json({ error: "حدث خطأ في السيرفر" });
+  }
+});
+
+// ✅ API لجلب أرصدة المزودين
+app.get('/api/providers/balance', async (req, res) => {
+  try {
+    const providers = await Paymentcompany.aggregate([
+      { $group: { _id: "$provider", totalPaid: { $sum: "$paidAmount" } } }
+    ]);
+
+    res.json(providers.map(provider => ({ name: provider._id, totalPaid: provider.totalPaid })));
+  } catch (error) {
+    console.error("خطأ أثناء جلب أرصدة المزودين:", error);
+    res.status(500).json({ error: "حدث خطأ في السيرفر" });
+  }
+});
+
 
 
 
