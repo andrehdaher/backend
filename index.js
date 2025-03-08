@@ -606,7 +606,7 @@ app.get('/api/companies/balance', async (req, res) => {
 app.get('/api/providers/balance', async (req, res) => {
   try {
     const providers = await Paymentcompany.aggregate([
-      { $group: { _id: "$provider", totalPaid: { $sum: "$paidAmount" } } }
+      { $group: { _id: "$provider", totalPaid: { $sum: "$requiredAmount" } } }
     ]);
 
     res.json(providers.map(provider => ({ name: provider._id, totalPaid: provider.totalPaid })));
@@ -649,34 +649,6 @@ app.get('/api/payments/search', async (req, res) => {
 
 
 
-// دالة لإضافة دفعة لشركة أو مزود
-app.post('/api/:type/pay', async (req, res) => {
-  try {
-    const { id, amount } = req.body;
-    const { type } = req.params;
-
-    if (!id || !amount || isNaN(amount) || amount <= 0) {
-      return res.status(400).json({ message: 'بيانات غير صالحة' });
-    }
-
-    let model;
-    if (type === 'companies') model = Paymentcompany;
-    else if (type === 'providers') model = Payment;
-    else return res.status(400).json({ message: 'نوع غير صالح' });
-
-    const entity = await model.findById(id);
-    if (!entity) return res.status(404).json({ message: 'غير موجود' });
-
-    // تحديث الرصيد بطرح الدفعة
-    entity.totalPaid -= amount;
-    await entity.save();
-
-    res.json({ message: 'تمت العملية بنجاح', updatedEntity: entity });
-  } catch (error) {
-    console.error('خطأ في معالجة الدفع:', error);
-    res.status(500).json({ message: 'خطأ في السيرفر' });
-  }
-});
 
 
 
