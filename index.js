@@ -84,7 +84,7 @@ app.post("/api/signup", async (req, res) => {
       }
   
       const token = jwt.sign({ id: user._id, role: user.role }, "secretKey", {
-        expiresIn: "100m",
+        expiresIn: "1h",
       });
   
       
