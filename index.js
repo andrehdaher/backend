@@ -431,39 +431,25 @@ app.post('/api/inventory', async (req, res) => {
 
 
 
-
-
-// إعدادات Multer لتحميل الملفات
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "./uploads"); // مجلد حفظ الملفات
-  },
-  filename: (req, file, cb) => {
-    cb(null, `${Date.now()}-${file.originalname}`); // اسم الملف الفريد
-  },
-});
-
-const upload = multer({ storage });
-
-// دالة إضافة جواز سفر مع دعم رفع أكثر من صورة
-app.post("/api/passports", upload.array("idImages", 10), async (req, res) => {
+app.post("/api/passports", async (req, res) => {
   try {
-    const { fullName, passportType, amountPaid, isReserved } = req.body;
+    const { fullName, nationalId, passportType, amountPaid, isReserved } = req.body;
 
-    if (!fullName || !passportType || !amountPaid) {
+    // التأكد من أن جميع الحقول ممتلئة
+    if (!fullName || !nationalId || !passportType || !amountPaid) {
       return res.status(400).json({ message: "❌ يرجى ملء جميع الحقول المطلوبة!" });
     }
 
-    const idImages = req.files.map((file) => file.path);
-
+    // إنشاء كائن جديد للجواز
     const newPassport = new Passport({
       fullName,
-      idImages,
+      nationalId, // الرقم الوطني بدلًا من idImages
       passportType,
       amountPaid,
-      isReserved: isReserved === "true",
+      isReserved: isReserved === "true", // تحويل النص إلى قيمة منطقية
     });
 
+    // حفظ الجواز في قاعدة البيانات
     const savedPassport = await newPassport.save();
 
     res.status(201).json({
@@ -501,19 +487,6 @@ app.delete("/api/passports/:id", async (req, res) => {
     if (!passport) {
       return res.status(404).json({ message: "الجواز غير موجود!" });
     }
-
-    // حذف الصور المرتبطة بالجواز من المجلد
-    passport.idImages.forEach((imagePath) => {
-      const filePath = path.join(__dirname, imagePath);
-      fs.unlink(filePath, (err) => {
-        if (err) {
-          console.error("❌ خطأ في حذف الصورة:", err);
-        } else {
-          console.log(`✅ تم حذف الصورة: ${imagePath}`);
-        }
-      });
-    });
-
     // إذا تم العثور على الجواز وحذفه
     res.json({ message: "تم حذف الجواز بنجاح!" });
   } catch (error) {
@@ -521,47 +494,36 @@ app.delete("/api/passports/:id", async (req, res) => {
     res.status(500).json({ message: "حدث خطأ في الحذف، يرجى المحاولة لاحقًا." });
   }
 });
-// دالة تعديل الجواز
-app.put("/api/passports/:id", upload.array("idImages", 10), async (req, res) => {
+
+
+app.put("/api/passports/:id", async (req, res) => {
   try {
     const { id } = req.params;
+    const { fullName, nationalId, passportType, amountPaid, isReserved } = req.body;
 
-    // جلب الجواز الحالي من قاعدة البيانات
+    // التحقق من وجود الجواز
     const passport = await Passport.findById(id);
     if (!passport) {
-      return res.status(404).json({ message: "الجواز غير موجود!" });
+      return res.status(404).json({ message: "❌ الجواز غير موجود!" });
     }
 
-    // حذف الصور القديمة إذا تم تحميل صور جديدة
-    passport.idImages.forEach((imagePath) => {
-      const filePath = path.join(__dirname, imagePath);
-      fs.unlink(filePath, (err) => {
-        if (err) {
-          console.error("❌ خطأ في حذف الصورة القديمة:", err);
-        } 
-      });
-    });
-
-    // تحديث البيانات مع الصور الجديدة
-    const idImages = req.files.map((file) => file.path);
+    // تحديث بيانات الجواز بدون التعامل مع الصور
     const updatedPassport = await Passport.findByIdAndUpdate(
       id,
-      {
-        ...req.body, // تحديث باقي الحقول
-        idImages: idImages, // تحديث الصور
-      },
+      { fullName, nationalId, passportType, amountPaid, isReserved },
       { new: true }
     );
 
     res.status(200).json({ message: "✅ تم تعديل الجواز بنجاح!", passport: updatedPassport });
   } catch (error) {
     console.error("❌ حدث خطأ أثناء التعديل:", error);
-    res.status(500).json({ message: "حدث خطأ في التعديل، يرجى المحاولة لاحقًا." });
+    res.status(500).json({ message: "❌ حدث خطأ في التعديل، يرجى المحاولة لاحقًا." });
   }
 });
 
 
 
+//================================================================================
 
 // دالة لحفظ البيانات في قاعدة البيانات
 app.post('/api/payment', async (req, res) => {
