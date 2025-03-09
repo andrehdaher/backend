@@ -439,36 +439,25 @@ app.post('/api/inventory', async (req, res) => {
 
 
 
+
 app.post("/api/passports", async (req, res) => {
+  console.log(req.body); // إضافة log لعرض البيانات المرسلة
+
   try {
     const { fullName, nationalId, passportType, amountPaid, isReserved } = req.body;
 
-    // التحقق من أن جميع الحقول ممتلئة
+    // التأكد من أن جميع الحقول ممتلئة
     if (!fullName || !nationalId || !passportType || !amountPaid) {
       return res.status(400).json({ message: "❌ يرجى ملء جميع الحقول المطلوبة!" });
     }
 
-    // تحويل الرقم الوطني إلى نوع Number (مع التعامل مع الأصفار في بداية الرقم)
-    const nationalIdNum = Number(nationalId); // أو يمكنك استخدام parseInt(nationalId)
-
-    // التأكد من صحة الرقم الوطني
-    if (isNaN(nationalIdNum)) {
-      return res.status(400).json({ message: "❌ الرقم الوطني غير صحيح!" });
-    }
-
-    // تحويل amountPaid إلى رقم أيضًا
-    const amountPaidNum = Number(amountPaid);
-
-    // التأكد من تحويل isReserved إلى Boolean
-    const isReservedBool = isReserved === "true";
-
     // إنشاء كائن جديد للجواز
     const newPassport = new Passport({
       fullName,
-      nationalId: nationalIdNum, // الرقم الوطني كرقم
+      nationalId, // الرقم الوطني بدلًا من idImages
       passportType,
-      amountPaid: amountPaidNum, // المبلغ المدفوع كرقم
-      isReserved: isReservedBool,
+      amountPaid,
+      isReserved: isReserved === "true", // تحويل النص إلى قيمة منطقية
     });
 
     // حفظ الجواز في قاعدة البيانات
