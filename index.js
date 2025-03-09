@@ -22,7 +22,9 @@ app.use(cors());
 app.options('*', cors()); // يسمح لجميع الطلبات OPTIONS
 app.use(express.json());
 app.use(methodOverride("_method"));
-app.use("/uploads", express.static("uploads")); // جعل الملفات قابلة للوصول
+app.use(express.urlencoded({ extended: true }));
+
+
 
 mongoose
 .connect(process.env.MONGO_URI)
