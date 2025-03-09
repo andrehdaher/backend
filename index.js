@@ -22,7 +22,6 @@ app.use(cors());
 app.options('*', cors()); // يسمح لجميع الطلبات OPTIONS
 app.use(express.json());
 app.use(methodOverride("_method"));
-app.use(express.urlencoded({ extended: true }));
 
 
 
@@ -442,6 +441,8 @@ app.post('/api/inventory', async (req, res) => {
 
 
 app.post("/api/passports", async (req, res) => {
+  console.log(req.body); // إضافة log لعرض البيانات المرسلة
+
   try {
     const { fullName, nationalId, passportType, amountPaid, isReserved } = req.body;
 
