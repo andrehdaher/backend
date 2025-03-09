@@ -68,8 +68,10 @@ app.post("/api/signup", async (req, res) => {
 
   res.status(200).json({ message: "Signup successful" });
 });
+
+
   // ✅ تسجيل الدخول (Login)
-  app.post("/api/login", async (req, res) => {
+app.post("/api/login", async (req, res) => {
     const { email, password } = req.body;
     
     try {
@@ -133,6 +135,8 @@ app.get("/api/", async (req, res) => {
     res.status(500).json({ message: "Error fetching users" });
   }
 });
+
+
 // ✅ إضافة مستخدم جديد
 app.post("/api/add-user", async (req, res) => {
   try {
@@ -147,6 +151,8 @@ app.post("/api/add-user", async (req, res) => {
   }
 });
   
+
+
 // ✅ حذف مستخدم
 app.delete("/api/delete/:id", async (req, res) => {
   try {
@@ -157,6 +163,8 @@ app.delete("/api/delete/:id", async (req, res) => {
     res.status(500).json({ message: "Error deleting user", error });
   }
 });
+
+
 
 app.put("/api/update/:id", async (req, res) => {
   const { id } = req.params;

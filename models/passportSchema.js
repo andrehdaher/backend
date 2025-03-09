@@ -3,10 +3,11 @@ const mongoose = require("mongoose");
 const passportSchema = new mongoose.Schema({
   fullName: { type: String, required: true },
   nationalId: { type: String, required: true, unique: true }, // إضافة الرقم الوطني بدلاً من الصور
-  passportType: { type: String, enum: ["عادي", "مستعجل", "فوري"], default: "عادي" },
+  passportType: { type: String, required: true },
   amountPaid: { type: Number, required: true },
   isReserved: { type: Boolean, default: false },
-  createdAt: { type: Date, default: Date.now },
-});
+}, { timestamps: true });
 
-module.exports = mongoose.model("Passport", passportSchema);
+const Passport = mongoose.model("Passport", passportSchema);
+
+module.exports = Passport;
