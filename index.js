@@ -457,7 +457,7 @@ app.post("/api/passports", async (req, res) => {
       nationalId, // الرقم الوطني بدلًا من idImages
       passportType,
       amountPaid,
-      isReserved: isReserved === "true", // تحويل النص إلى قيمة منطقية
+      isReserved: isReserved === true, // تحويل النص إلى قيمة منطقية
     });
 
     // حفظ الجواز في قاعدة البيانات
