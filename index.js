@@ -623,27 +623,25 @@ app.get('/api/payments/search', async (req, res) => {
 
 
 app.post('/api/companies/add-balance', async (req, res) => {
-  const { name, amount } = req.body;
+  const { company, amount } = req.body;
 
-  if (!name || typeof amount !== 'number') {
-    return res.status(400).json({ message: 'الاسم أو المبلغ غير صالح.' });
-  }
+
 
   try {
     // ابحث عن الشركة
-    const company = await Paymentcompany.findOne({ name });
+    const company1 = await Paymentcompany.findOne({ company });
 
-    if (!company) {
+    if (!company1) {
       return res.status(404).json({ message: 'الشركة غير موجودة.' });
     }
 
     // تحديث الرصيد
-    Paymentcompany.totalPaid += amount;
+    company1.totalPaid += amount;
 
     // حفظ التحديث
-    await Paymentcompany.save();
+    await company1.save();
 
-    return res.status(200).json({ message: 'تم تحديث الرصيد بنجاح.', totalPaid: Paymentcompany.totalPaid });
+    return res.status(200).json({ message: 'تم تحديث الرصيد بنجاح.', totalPaid: company1.totalPaid });
   } catch (error) {
     console.error('خطأ أثناء تحديث الرصيد:', error);
     return res.status(500).json({ message: 'حدث خطأ في السيرفر.' });
