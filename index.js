@@ -633,7 +633,7 @@ app.post('/api/companies/add-balance', async (req, res) => {
     // ابحث عن الشركة
     const company = await Paymentcompany.findOne({ name });
 
-    if (!Paymentcompany) {
+    if (!company) {
       return res.status(404).json({ message: 'الشركة غير موجودة.' });
     }
 
