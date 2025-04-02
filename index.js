@@ -275,32 +275,34 @@ app.post('/api/inventory', async (req, res) => {
 
 
 
-// 3. تعديل سعر منتج
+// 3. تعديل بيانات المنتج (السعر والكمية)
 app.put('/api/inventory/:id', async (req, res) => {
   const { id } = req.params;
-  const { wholesalePrice, retailPrice } = req.body;
+  const { wholesalePrice, retailPrice, quantity } = req.body;
 
-  if (!wholesalePrice || isNaN(wholesalePrice) || !retailPrice || isNaN(retailPrice)) {
-    return res.status(400).send("الرجاء إدخال أسعار صحيحة");
+  if (!wholesalePrice || isNaN(wholesalePrice) || 
+      !retailPrice || isNaN(retailPrice) || 
+      !quantity || isNaN(quantity)) {
+    return res.status(400).send("الرجاء إدخال قيم صحيحة.");
   }
 
   try {
     const product = await Product.findById(id);
     if (!product) {
-      return res.status(404).send("المنتج غير موجود");
+      return res.status(404).send("المنتج غير موجود.");
     }
     
     product.wholesalePrice = wholesalePrice;
     product.retailPrice = retailPrice;
+    product.quantity = quantity;
     await product.save();
 
-    res.status(200).json({ message: "تم تعديل الأسعار بنجاح", product });
+    res.status(200).json({ message: "تم تعديل المنتج بنجاح!", product });
   } catch (error) {
     console.error("خطأ في تعديل المنتج:", error);
-    res.status(500).send("حدث خطأ أثناء تعديل المنتج");
+    res.status(500).send("حدث خطأ أثناء تعديل المنتج.");
   }
 });
-
 
 
 // 4. حذف منتج
