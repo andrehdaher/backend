@@ -138,6 +138,26 @@ app.get("/api/", async (req, res) => {
 });
 
 
+// مسار: /update/:id
+app.put('/update/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updateData = req.body;
+
+    const updatedUser = await addUser.findByIdAndUpdate(id, updateData, { new: true });
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json(updatedUser);
+  } catch (error) {
+    console.error("Error updating user:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+
 // ✅ إضافة مستخدم جديد
 app.post("/api/add-user", async (req, res) => {
   try {
