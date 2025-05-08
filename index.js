@@ -189,7 +189,7 @@ app.delete("/api/delete/:id", async (req, res) => {
 
 app.put("/api/update/:id", async (req, res) => {
   const { id } = req.params;
-  const { paid, manualUpdate, ...updateFields } = req.body;
+  const { paid, manualUpdate,comment, ...updateFields } = req.body;
 
   try {
     const user = await addUser.findById(id);
