@@ -244,8 +244,12 @@ app.get("/api/payments", async (req, res) => {
           _id: "$userId",
           userName: { $first: "$userName" },
           payments: {
-            $push: { amount: "$amount", date: "$date" }
-          }
+            $push: {
+              amount: "$amount",
+              date: "$date",
+              comment: "$comment"
+            }
+                      }
         }
       },
       {
