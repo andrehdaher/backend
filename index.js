@@ -210,6 +210,7 @@ app.put("/api/update/:id", async (req, res) => {
           userId: user._id,
           amount: Number(paid),
           userName: user.fullName,
+          comment: String(Com),
         });
         await newPayment.save();
       }

@@ -5,6 +5,7 @@ const paymentSchema = new mongoose.Schema({
   amount: { type: Number, required: true },
   date: { type: Date, default: Date.now }, // التاريخ التلقائي للدفعة
   userName: { type: String, required: true }, // اسم المستخدم للعرض في البيان المالي
+  comment: { type: String, required: true }, // اسم المستخدم للعرض في البيان المالي
 });
 
 const Payment = mongoose.model("Payment", paymentSchema);
